@@ -49,8 +49,8 @@ void display_users(void){
 }
 
  int unique_name(char* name){//part of the check for unique client names
-	int counter=1;
-	while(counter<=MAX_CLIENTS && clients[counter].unique_id !=0){//iterate array
+	int counter=0;
+	while(counter<MAX_CLIENTS && clients[counter].unique_id !=0){//iterate array
 		if(strcmp(clients[counter].name,name) == 0){
 			printf("User name already exists\n");
 			return -1;//false 
