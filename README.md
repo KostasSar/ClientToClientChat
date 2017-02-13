@@ -1,0 +1,2 @@
+# ClientToClientChat
+University group project where we create a simple chat application. Programming language used: C. The chat service works by initialising a server, connecting up to 100 clients to it and pairing them up to create small chat rooms and direct communication. A failsafe system is included in case a client disconects unexpectedly. The messages sent to him while he was unavailable are stored and resent as he reconnects.
