@@ -62,19 +62,25 @@ void display_users(void){
 
 //method to find specific user, in order to send the message
 int find_user(char* name){
-	int counter=1;
-	while(counter<=MAX_CLIENTS && strcmp(clients[counter].name,name) !=0){//iterate array until matching name is found
+	int counter=0;
+	while(counter<MAX_CLIENTS && strcmp(clients[counter].name,name) !=0){//iterate array until matching name is found
+		//possible change to print message to the client
+		if(counter == MAX_CLIENTS){//match was not found and the whole array was iterated
+		//printf("Match was not found\n");
+			return -1;//not found equals false
+		}else{//match was found and there is 
+			//printf("Match was found");
+			int receiver_id;
+			if(strcmp(clients[counter].name,name) == 0){
+				receiver_id = clients[counter].unique_id;		
+			}	
+			return receiver_id;//found equals true
+		}
 		counter++;
 	}
-	//possible change to print message to the client
-	if(counter == MAX_CLIENTS){//match was not found and the whole array was iterated
-		//printf("Match was not found\n");
-		return -1;//not found equals false
-	}else{//match was found and there is 
-		//printf("Match was found");
-		return 0;//found equals true
-	}
+	
 }
+
 
 //code to remove user from list of active users when he disconnects
 void remove_user(char* name){
