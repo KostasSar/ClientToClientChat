@@ -23,9 +23,8 @@ int main(int argc, char *argv[])
 	char tokenizer[]="@#";
 	char myarray[148]; 
 	char mes[80];
-	char name[10], receiver[10], active[1000], buffer[256];
-	char tempname[10];//kosta here  new variable to help with tokenizing
-	int count=0, result, fd, size;//the same here
+	char name[10], receiver[10], buffer[256];
+	int count=0, result, fd;
 	char msg[100];
 	fd_set readfds, testfds, clientfds;
         if (argc < 3) {
@@ -56,13 +55,8 @@ int main(int argc, char *argv[])
 		if(count!=0){
 			printf("an error occured.Try again\n");
 		}
-		fgets(name,10,stdin);///////////////////////
+		scanf("%s", name);
 	}while(strlen(name) > sizeof(name));
-	size = strlen(name) - 1;//kosta here
-	name[size]='\0';
-	strcpy(tempname,name);
-	strcat(tempname,"@#@#");
-	printf("the name is:%s\n", name);
 	n = write(sockfd,name,strlen(name));
 	
 	//initializes the file descriptor clientfds to have zero bits for all file descriptors
@@ -74,9 +68,6 @@ int main(int argc, char *argv[])
 	//wait for the server to respond
 	//send list of active users !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	printf("Printing list of active users......\n");
-	n = read(sockfd, active, sizeof(active -1));
-
-	printf("the returned function is: %s\n", active);
 	printf("You are ready. Type something to send a message or 'quit' to quit\n");
 	while(1){
 		testfds=clientfds;
@@ -86,42 +77,29 @@ int main(int argc, char *argv[])
 			//returns a non-zero value if the bit for the file descriptor fd is set in the file descriptor testfds, and 0 otherwise
 			if(FD_ISSET(fd,&testfds)){
 				//accepts data from open socket
-				if(fd == sockfd){
+				if(fd ==sockfd){
 					result = read(sockfd,msg, sizeof(msg -1));
 					printf("The msg is: %s", msg);
 				}
 				else if(fd ==0){//process keyboard activity
-					fgets(mes,sizeof(mes), stdin);
-					if(strcmp(mes,"quit\n") ==0){
-						write(sockfd,mes,sizeof(msg));
+					fgets(msg,sizeof(msg), stdin);
+					if(strcmp(msg,"quit\n") ==0){
+						write(sockfd,msg,sizeof(msg));
 						//read
 						close(sockfd);
 						printf("You are now quitting!\n");
 						return(0);
 					
-					}else{//and here
-						size = strlen(mes)-1;
-						mes[size]='\0';
-						printf("You typed something: %s\n", mes);
-						printf("Type the receiver\n");
-						fgets(receiver,10,stdin);
-						size = strlen(receiver) - 1;
-						receiver[size]='\0';
-						strcpy(msg, name);
-						strcat(msg, tokenizer);
-						strcat(msg,receiver);
-						strcat(msg,tokenizer);
-						strcat(msg,mes);
-						printf("The message is: %s", msg);
-						n = write(sockfd,mes,strlen(mes));
+					}else{
+						printf("You typed something!\n");
+						n = write(sockfd,"Typed message\n",14);
 						if(n<0){
 							error("Error sending message");
 						}
 					}
 				}
 				else{
-//					continue;
-					printf("else\n");
+					continue;
 				}
 			}
 		}
