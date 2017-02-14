@@ -66,18 +66,23 @@ void display_users(int sockfd){
 
 //method to find specific user, in order to send the message
 int find_user(char* name){
-	int counter=1;
-	while(counter<=MAX_CLIENTS && strcmp(clients[counter].name,name) !=0){//iterate array until matching name is found
+	int counter=0;
+	while(counter<MAX_CLIENTS && strcmp(clients[counter].name,name) !=0){//iterate array until matching name is found
+		//possible change to print message to the client
+		if(counter == MAX_CLIENTS){ //match was not found and the whole array was iterated
+		//printf("Match was not found\n");
+			return -1;//not found equals false
+		}else{//match was found and there is 
+			//printf("Match was found");
+			int receiver_id;
+			if(strcmp(clients[counter].name,name) == 0){
+				receiver_id = clients[counter].unique_id;		
+			}	
+			return receiver_id;//found equals true
+		}
 		counter++;
 	}
-	//possible change to print message to the client
-	if(counter == MAX_CLIENTS){//match was not found and the whole array was iterated
-		//printf("Match was not found\n");
-		return -1;//not found equals false
-	}else{//match was found and there is 
-		//printf("Match was found");
-		return 0;//found equals true
-	}
+	
 }
 
 //code to remove user from list of active users when he disconnects
@@ -112,6 +117,11 @@ int main(int argc, char *argv[])
 	fd_set readfds, testfds,clientfds;
 	int result;
 	char msg[100];
+	
+	//variables used in forwarding message part
+	char receiver[10], temp[80], *temp_pointer = temp;
+	int position, receiver_id;
+	
         if (argc < 2) {
 		fprintf(stderr,"ERROR, no port provided\n");
                 return;
@@ -195,7 +205,22 @@ int main(int argc, char *argv[])
 				}else{
 					printf("client has typed something\n");
 					result = read(fd,msg,sizeof(msg-1));
-					printf("%s\n",msg);
+
+					//prints the whole message, including sender and receiver
+					printf("%s",msg);
+
+					
+					//keeps only the receiver part
+					msg_pointer = strstr(msg , "@#");
+					strcpy(temp, msg_pointer + 2);
+					msg_pointer = strpbrk(temp, "@");
+					position = msg_pointer - temp_pointer;
+					memcpy(receiver, temp, position);	
+					printf("The receiver is\n%s\n", receiver);
+
+					//finds the receivers unique id and fowards him the message
+					receiver_id = find_user(receiver);
+					write(receiver_id, msg, MSG_SIZE);
 				}
 			}*/
 		}
