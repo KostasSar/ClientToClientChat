@@ -30,39 +30,42 @@ void error(char *msg)
 
 //method to display all active users
 void display_users(int sockfd){
-	int counter=0;
-	char s[1000];//size to be changed
+        int counter=0, n;
+        char s[1000], free[]="(free)";
+        s[0]=0;
 
-	int n;
-	printf("Printing active users!\n");
-//	while(counter < MAX_CLIENTS && clients[counter].unique_id != 0){//iterate through array of clients till end or empty cell is reached
-	//	printf("The name is:%s, the counter is:%d\n", clients[counter].name, counter);
-		//sprintf(s, "%s\n", clients[counter].name);
-//		if(counter ==1){
-//			strcpy(s, clients[counter].name);
-//		}else{
-//			strcat(s, clients[counter].name);
-//		}
-//		printf("%s  %d", clients[counter].name, &counter);
-//		counter++;
-//	}
-//	printf("HERE MALAKA: %s", s);
-	bzero(s, 1000);
-	sprintf(s,"hello");
-	n = write(sockfd, s, strlen(s));
+        printf("Printing active users!\n");
+        while(counter < MAX_CLIENTS && clients[counter].unique_id != 0){
+                if(counter ==0){
+                        strcpy(s, clients[counter].name);
+                }else{
+                        strcat(s, clients[counter].name);
+                }
+                if(clients[counter].free ==0){
+                        strcat(s,free);
+                }
+                counter++;
+        }
+        if(strcmp(s,"")==0){
+                sprintf(s,"You are the first user!");
+        }
+        printf("%s\n", s);
+        n = write(sockfd, s, strlen(s));
 }
 
  int unique_name(char* name){//part of the check for unique client names
-	int counter=1;
-	while(counter<=MAX_CLIENTS && clients[counter].unique_id !=0){//iterate array
-		if(strcmp(clients[counter].name,name) == 0){
-			printf("User name already exists\n");
-			return -1;//false 
-		}
-		counter++;
-	}
-	return 0;//true
+        int counter=0;
+        while(counter<MAX_CLIENTS && clients[counter].unique_id !=0){//iterate ar$
+                if(strcmp(clients[counter].name,name) == 0){
+                        printf("User name already exists\n");
+                        return -1;//false
+                }
+                counter++;
+        }
+        return 0;//true
 }
+
+
 
 //method to find specific user, in order to send the message
 int find_user(char* name){
@@ -135,9 +138,9 @@ int main(int argc, char *argv[])
 
         serv_addr.sin_family = AF_INET;
         serv_addr.sin_addr.s_addr = INADDR_ANY;
-        serv_addr.sin_port = htons(portno);
+	        serv_addr.sin_port = htons(portno);
 
-	if (bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0){ 
+/	if (bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0){ 
 		error("ERROR on binding");
 	}
         listen(sockfd,5);
@@ -145,7 +148,7 @@ int main(int argc, char *argv[])
 	FD_ZERO(&readfds);
 	//sets the bit for the file descriptor sockfd in the file descript or clientfdset
 	FD_SET(sockfd, &readfds);
-	//sets the bit for the stdin in the file descriptor readsfds
+		//sets the bit for the stdin in the file descriptor readsfds
 	FD_SET(0, &readfds);
 	int fd;
 	
@@ -170,16 +173,34 @@ int main(int argc, char *argv[])
 					error("ERROR reading from socket\n");
 				}
 				if(mycounter<MAX_CLIENTS){//if the array still has some space
-					char *tok;
-					tok = strtok(name,"@#");
-					
-					client temp; //save client
-					strcpy(temp.name, tok);
-					temp.unique_id=newsockfd;
-					temp.free = 0;
-					clients[mycounter]=temp;
-					printf("the name is: %s the id is: %d\n", name, newsockfd);
-					mycounter++;
+					char *tok;//added code 
+                                        do{
+                                                //bzero(msg, 1000);
+                                                tok = strtok(name,"@#");
+                                                result = unique_name(tok);
+                                                printf("The result is: %d\n", result);
+                                                if(result == 0){
+                                                        printf("NEW NAME IS ACCEPTED\n");
+                                                        msg[0]='\0';
+                                                        sprintf(msg,"accepted");
+                                                        printf("the message is:%s\n",msg);
+                                                        n = write(newsockfd,msg,strlen(msg));
+                                                }else{
+                                                        printf("error HERE MALAKA\n");
+                                                        sprintf(msg,"exists");
+                                                        n = write(newsockfd, msg, strlen(msg));
+                                                        n = read(newsockfd,name,31);
+                                                }
+                                        }while(result == -1);
+
+                                        client temp; //save client
+                                        strcpy(temp.name, tok);
+                                        temp.unique_id=newsockfd;
+                                        temp.free = 0;
+                                        clients[mycounter]=temp;
+                                        printf("the name is: %s the id is: %d\n", name, newsockfd);
+                                        mycounter++;
+		
 				}else{//array is full
 					printf("We cannot support client\n");
 					write(newsockfd,"The server is full, please try later!\n",38);
