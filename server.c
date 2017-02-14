@@ -17,9 +17,10 @@
 typedef struct {				//client structure
 	char name[10];				//client name
 	int unique_id;				//client unique id
+	int free;
 }client;
 
-client clients[MAX_CLIENTS] = { { "", 0 } };	//array of active clients declaration and initialization
+client clients[MAX_CLIENTS] = { { "", 0, 0 } };	//array of active clients declaration and initialization
 
 void error(char *msg)
 {
@@ -28,12 +29,13 @@ void error(char *msg)
 }
 
 //method to display all active users
-void display_users(void){
+void display_users(int sockfd){
 	int counter=0;
 	char s[1000];//size to be changed
-	s[0]='\0';
+
+	int n;
 	printf("Printing active users!\n");
-	while(counter < MAX_CLIENTS && clients[counter].unique_id != 0){//iterate through array of clients till end or empty cell is reached
+//	while(counter < MAX_CLIENTS && clients[counter].unique_id != 0){//iterate through array of clients till end or empty cell is reached
 	//	printf("The name is:%s, the counter is:%d\n", clients[counter].name, counter);
 		//sprintf(s, "%s\n", clients[counter].name);
 //		if(counter ==1){
@@ -41,16 +43,18 @@ void display_users(void){
 //		}else{
 //			strcat(s, clients[counter].name);
 //		}
-		printf("%s  %d", clients[counter].name, &counter);
-		counter++;
-	}
-	printf("HERE MALAKA: %s", s);
-	//write(sockfd, s, strlen(s));
+//		printf("%s  %d", clients[counter].name, &counter);
+//		counter++;
+//	}
+//	printf("HERE MALAKA: %s", s);
+	bzero(s, 1000);
+	sprintf(s,"hello");
+	n = write(sockfd, s, strlen(s));
 }
 
  int unique_name(char* name){//part of the check for unique client names
-	int counter=0;
-	while(counter<MAX_CLIENTS && clients[counter].unique_id !=0){//iterate array
+	int counter=1;
+	while(counter<=MAX_CLIENTS && clients[counter].unique_id !=0){//iterate array
 		if(strcmp(clients[counter].name,name) == 0){
 			printf("User name already exists\n");
 			return -1;//false 
@@ -62,25 +66,19 @@ void display_users(void){
 
 //method to find specific user, in order to send the message
 int find_user(char* name){
-	int counter=0;
-	while(counter<MAX_CLIENTS && strcmp(clients[counter].name,name) !=0){//iterate array until matching name is found
-		//possible change to print message to the client
-		if(counter == MAX_CLIENTS){//match was not found and the whole array was iterated
-		//printf("Match was not found\n");
-			return -1;//not found equals false
-		}else{//match was found and there is 
-			//printf("Match was found");
-			int receiver_id;
-			if(strcmp(clients[counter].name,name) == 0){
-				receiver_id = clients[counter].unique_id;		
-			}	
-			return receiver_id;//found equals true
-		}
+	int counter=1;
+	while(counter<=MAX_CLIENTS && strcmp(clients[counter].name,name) !=0){//iterate array until matching name is found
 		counter++;
 	}
-	
+	//possible change to print message to the client
+	if(counter == MAX_CLIENTS){//match was not found and the whole array was iterated
+		//printf("Match was not found\n");
+		return -1;//not found equals false
+	}else{//match was found and there is 
+		//printf("Match was found");
+		return 0;//found equals true
+	}
 }
-
 
 //code to remove user from list of active users when he disconnects
 void remove_user(char* name){
@@ -155,15 +153,20 @@ int main(int argc, char *argv[])
 					error("ERROR on accept\n");
 				}
 				printf("New client has connected\n");
+				display_users(newsockfd);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				bzero(name, 32);
 				n = read(newsockfd, name, 31);//read from client his name
 				if(n<0){//error occured
 					error("ERROR reading from socket\n");
 				}
 				if(mycounter<MAX_CLIENTS){//if the array still has some space
+					char *tok;
+					tok = strtok(name,"@#");
+					
 					client temp; //save client
-					strcpy(temp.name,name);
+					strcpy(temp.name, tok);
 					temp.unique_id=newsockfd;
+					temp.free = 0;
 					clients[mycounter]=temp;
 					printf("the name is: %s the id is: %d\n", name, newsockfd);
 					mycounter++;
@@ -175,7 +178,7 @@ int main(int argc, char *argv[])
 
 			}
 	//this part compiles but the first if is negated have to change if conditions
-			else if(fd == 0){//process user's innput
+/*			else if(fd == 0){//process user's innput
 				continue;
 			}
 			else if(fd){//process client specific activity
@@ -185,14 +188,16 @@ int main(int argc, char *argv[])
 					//break;
 				}
 				if(strcmp(msg,"quit\n")==0){
+				//	remove_user();
 					printf("client is leaving %d", fd);
-				
+			
+	
 				}else{
 					printf("client has typed something\n");
 					result = read(fd,msg,sizeof(msg-1));
-					printf("%s",msg);
+					printf("%s\n",msg);
 				}
-			}
+			}*/
 		}
 	}
         return  0;
