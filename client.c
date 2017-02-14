@@ -12,6 +12,7 @@ void error(char *msg)
 {
     perror(msg);
     return;
+
 }
 
 int main(int argc, char *argv[])
@@ -50,7 +51,11 @@ int main(int argc, char *argv[])
     	serv_addr.sin_port = htons(portno);
     	if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0){ 
 	        error("ERROR connecting");
+		return;
 	}
+	bzero(active,1000);//added
+        n = read(sockfd,active,999);
+        printf("The active users are: %s\n", active);
 	printf("You are now connected! What do you want to do?\nPlease enter your name!\n");
 	do{
 		if(count!=0){
@@ -64,7 +69,24 @@ int main(int argc, char *argv[])
 	strcat(tempname,"@#@#");
 	printf("the name is:%s\n", name);
 	n = write(sockfd,name,strlen(name));
-	
+	        do{//added
+                printf("The firts message is:%s", msg);
+                bzero(msg,1000);
+                n =read(sockfd,msg,99);
+                printf("the msg is:%s", msg);
+                if(strcmp(msg,"accepted") ==0){
+                        printf("The name was succesfylly submitted!\n");
+                }else{
+                        printf("Name already in use.Choose another\n");
+                        fgets(name,10,stdin);
+                        size = strlen(name)-1;
+                        name[size]='\0';
+                        strcpy(tempname,name);
+                        strcat(tempname,"@#@#");
+                        n = write(sockfd,name,strlen(name));
+                }
+        }while(strcmp(msg,"exists") == 0);
+
 	//initializes the file descriptor clientfds to have zero bits for all file descriptors
 	FD_ZERO(&clientfds);
 	//sets the bit for the file descriptor sockfd in the file descriptor clientfdset
