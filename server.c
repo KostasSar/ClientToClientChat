@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 	char msg[100];
 	
 	//variables used in forwarding message part
-	char receiver[10], temp[80], *temp_pointer = temp;
+	char receiver[10], temp[80], *temp_pointer = temp, *msg_pointer;
 	int position, receiver_id;
 	
         if (argc < 2) {
